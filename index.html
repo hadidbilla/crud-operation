@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crud Operation</title>
+  </head>
+  <body>
+    <h1>Now i am playing with mongoDB</h1>
+    <form action="/addProduct" method="post">
+      <input type="text" name="name" placeholder="Name" />
+      <input type="text" name="price" placeholder="Price" />
+      <input type="text" name="quantity" placeholder="Quantity" />
+      <input type="submit" value="Add Product" />
+    </form>
+    <div id="products"></div>
+    <div id="update"></div>
+    <script>
+      /*---------- (Get All Data Method) ----------------*/
+      const loadAllProducts = () => {
+        fetch("/products")
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            const container = document.getElementById("products");
+            data.forEach((pd) => {
+              const item = document.createElement("p");
+              item.innerHTML = `${pd.name} Price:${pd.price} Quantity:${pd.quantity} <Button onclick="loadProduct('${pd._id}')">Update</Button>
+              <Button onclick="deleteProduct(event,'${pd._id}')">Delete</Button>`;
+              container.appendChild(item);
+            });
+          });
+      };
+      loadAllProducts();
+      /*------------ (Delete Method) ------------*/
+      const deleteProduct = (event, id) => {
+        fetch(`/delete/${id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data) {
+              event.target.parentNode.style.display = "none";
+              console.log(data);
+            }
+          });
+      };
+      /*----------- (Get Single Data Method) --------------*/
+      const loadProduct = (id) => {
+        fetch(`products/${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            const update = document.getElementById("update");
+            update.innerHTML = `
+            Price: <input type="text" value="${data.price}" id="price"/>
+            <br/>
+            <br/>
+            Quantity: <input type="text" value="${data.quantity}" id="quantity"/>
+            <br/>
+            <Button onClick="updateProduct('${data._id}')">Update</Button>
+            `;
+          });
+      };
+      /*----------- (Post Update Method) -----------------*/
+      function updateProduct(id) {
+        const price = document.getElementById("price").value;
+        const quantity = document.getElementById("quantity").value;
+        const product = { id, price, quantity };
+        fetch(`/update/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(product),
+        })
+          .then((res) => res.json())
+          .then((result) => {
+            if (result) {
+              loadAllProducts();
+              document.getElementById("update").innerHTML = "";
+            }
+          });
+      }
+    </script>
+  </body>
+</html>
